@@ -11,7 +11,7 @@ public:
 
     int part1(std::vector<std::string>& data){
         int x0, x1, y0, y1;
-        int results1 =0;
+        results1 =0;
         for(auto& l : data)
         {
             sscanf(l.c_str(), "%d-%d,%d-%d", &x0, &x1, &y0, &y1);
