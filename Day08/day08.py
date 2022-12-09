@@ -5,7 +5,6 @@ from functools import reduce
 def readdata(filename):
     with open(filename) as fid:
         txt = [[int(val) for val in line] for line in fid.read().split('\n')]
-
     return txt
 
 
@@ -13,48 +12,36 @@ def part1(data):
     m, n = len(data), len(data[0])
     field = {}
 
-    for i in range(m):
-        field[(i, 0, 'left')] = (True, data[i][0])
-        field[(i, n - 1, 'right')] = (True, data[i][n - 1])
-
-    for j in range(m):
-        field[(0, j, 'top')] = (True, data[0][j])
-        field[(m - 1, j, 'bottom')] = (True, data[m - 1][j])
-
     def dfs(i, j, direction):
         if (i, j, direction) in field:
             return field[(i, j, direction)]
-        if direction == "top":
-            if (i > 0) and (i, j, "top") not in field:
-                mx = dfs(i - 1, j, "top")[1]
-                field[(i, j, "top")] = (data[i][j] > mx), max(data[i][j], mx)
-        if direction == "bottom":
-            if (i < m - 1) and (i, j, "bottom") not in field:
-                mx = dfs(i + 1, j, "bottom")[1]
-                field[(i, j, "bottom")] = (data[i][j] > mx), max(mx, data[i][j])
-        if direction == "right":
-            if (j < n - 1) and (i, j, "right") not in field:
-                mx = dfs(i, j + 1, "right")[1]
-                field[(i, j, "right")] = (data[i][j] > mx), max(mx, data[i][j])
-        if direction == "left":
-            if (0 < j) and (i, j, "left") not in field:
-                mx = dfs(i, j - 1, "left")[1]
-                field[(i, j, "left")] = (data[i][j] > mx), max(mx, data[i][j])
+        if (
+            ((i == 0) and direction == "t")
+            or ((i == m - 1) and direction == "b")
+            or ((j == 0) and direction == "l")
+            or ((j == n - 1) and direction == "r")
+           ):
+            field[(i, j, direction)] = (True, data[i][j])
+
+        if (0 < i) and direction == "t":
+            mx = dfs(i - 1, j, "t")[1]
+            field[(i, j, "t")] = (data[i][j] > mx), max(mx, data[i][j])
+        if (i < m - 1) and direction == "b":
+            mx = dfs(i + 1, j, "b")[1]
+            field[(i, j, "b")] = (data[i][j] > mx), max(mx, data[i][j])
+        if (j < n - 1) and direction == "r":
+            mx = dfs(i, j + 1, "r")[1]
+            field[(i, j, "r")] = (data[i][j] > mx), max(mx, data[i][j])
+        if (0 < j) and direction == "l":
+            mx = dfs(i, j - 1, "l")[1]
+            field[(i, j, "l")] = (data[i][j] > mx), max(mx, data[i][j])
         return field[(i, j, direction)]
 
-    dfs(0, 0, "bottom")
-    dfs(0, 0, "right")
-    dfs(m - 1, n - 1, "top")
-    dfs(m - 1, n - 1, "left")
-    mat = [[0 for _ in range(n)] for i in range(m)]
+    s = 0
     for i in range(m):
         for j in range(n):
-            dfs(i, j, "bottom")
-            dfs(i, j, "right")
-            dfs(i, j, "top")
-            dfs(i, j, "left")
-            mat[i][j] = field[(i, j, 'top')][0] or field[(i, j, 'left')][0] or field[(i, j, 'bottom')][0] or field[(i, j, 'right')][0]
-    return sum([sum(m) for m in mat])
+            s += any([dfs(i, j, d)[0] for d in 'bltr'])
+    return s
 
 
 def part2_2(data):
@@ -107,40 +94,33 @@ def part2(data):
     m, n = len(data), len(data[0])
     field = {}
 
-    for i in range(m):
-        field[(i, 0, 'left')] = ((data[i][0], 0), 0)
-        field[(i, n - 1, 'right')] = ((data[i][n - 1], n - 1), 0)
-
-    for j in range(m):
-        field[(0, j, 'top')] = ((data[0][j], 0), 0)
-        field[(m - 1, j, 'bottom')] = ((data[m - 1][j], m - 1), 0)
-
     def dfs(i, j, direction):
         if (i, j, direction) in field:
             return field[(i, j, direction)]
+
         if direction == "top":
-            idx = i - 1
+            idx = max(i - 1, 0)
             mx = data[i - 1][j]
             while (idx > 0) and (data[i][j] > mx):
                 (mx, idx), _ = dfs(idx, j, "top")
             field[(i, j, "top")] = ((mx, idx), i - idx)
 
         if direction == "left":
-            idx = j - 1
+            idx = max(j - 1, 0)
             mx = data[i][j - 1]
             while (idx > 0) and (data[i][j] > mx):
                 (mx, idx), _ = dfs(i, idx, direction)
             field[(i, j, direction)] = ((mx, idx), j - idx)
 
         if direction == "bottom":
-            idx = i + 1
+            idx = min(i + 1, m - 1)
             mx = data[idx][j]
             while (idx < m - 1) and (data[i][j] > mx):
                 (mx, idx), _ = dfs(idx, j, direction)
             field[(i, j, direction)] = ((mx, idx), idx - i)
 
         if direction == "right":
-            idx = j + 1
+            idx = min(j + 1, n - 1)
             mx = data[i][idx]
             while (idx < n - 1) and (data[i][j] > mx):
                 (mx, idx), _ = dfs(i, idx, direction)
