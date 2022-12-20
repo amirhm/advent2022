@@ -96,15 +96,11 @@ def part2(lines):
     g = game(rocks, abys)
     return g.play2()
 
-import time
 def main():
     _, filename, *_ = *sys.argv, "data.txt"
     lines = readdata(filename)
     print(f'part1: {part1(lines)}')
-    
-    t0 = time.time()
     print(f'part2: {part2(lines)}')
-    print(f"{time.time() - t0}")
 
 if __name__ == "__main__":
     exit(main())
